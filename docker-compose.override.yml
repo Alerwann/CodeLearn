@@ -1,0 +1,45 @@
+# @format
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      target: deps
+    command: npm run dev -- --hostname 0.0.0.0 --port ${FRONT_PORT:-3000}
+    ports:
+      - '${FRONT_PORT:-3000}:${FRONT_PORT:-3000}'
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      INTERNAL_API_URL: ${INTERNAL_API_URL}
+      WATCHPACK_POLLING: 'true'
+    networks:
+      - frontend_net
+
+  backend:
+    build:
+      context: ./backend
+      target: deps
+    command: npm run start:dev
+    ports:
+      - '${BACK_PORT:-3001}:${BACK_PORT:-3001}'
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - /app/dist
+    environment:
+      NODE_ENV: development
+      PORT: ${BACK_PORT:-3001}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MONGO_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_INITDB_DATABASE}?authSource=admin
+    networks:
+      - backend_net
+      - frontend_net
